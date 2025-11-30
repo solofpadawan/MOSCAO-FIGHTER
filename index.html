@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOSCÃO FIGHTER</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="game-container">
+        <div id="start-screen">
+            <img src="assets/images/bio_ship.png" id="start-bg-ship" alt="">
+            <h1 class="title">MOSCÃO FIGHTER</h1>
+            <div class="high-scores">
+                <h2>TOP 10 PLAYERS</h2>
+                <div class="score-entry score-1"><span>AAA</span><span>50000</span></div>
+                <div class="score-entry score-2"><span>BBB</span><span>40000</span></div>
+                <div class="score-entry score-3"><span>CCC</span><span>30000</span></div>
+                <div class="score-entry score-4"><span>DDD</span><span>20000</span></div>
+                <div class="score-entry score-5"><span>EEE</span><span>10000</span></div>
+                <div class="score-entry score-6"><span>FFF</span><span>9000</span></div>
+                <div class="score-entry score-7"><span>GGG</span><span>8000</span></div>
+                <div class="score-entry score-8"><span>HHH</span><span>7000</span></div>
+                <div class="score-entry score-9"><span>III</span><span>6000</span></div>
+                <div class="score-entry score-10"><span>JJJ</span><span>5000</span></div>
+            </div>
+            <p class="blink">Pressione algo para começar!</p>
+        </div>
+        <div id="ui-layer" class="hidden">
+            <div id="score">Score: 0</div>
+            <div id="level">Level: 1</div>
+        </div>
+        <div id="game-over" class="hidden">
+            <h1>GAME OVER</h1>
+            <p id="final-score">Score: 0</p>
+            <div id="name-entry">
+                <p>Digite seu nome:</p>
+                <input type="text" id="player-name" maxlength="6" placeholder="PLAYER" autocomplete="off">
+                <button id="submit-name-btn" class="submit-btn">[ ENTER ]</button>
+            </div>
+            <p id="restart-msg" class="hidden">Pressione ESPAÇO ou Toque para Reiniciar</p>
+            <button id="share-btn" class="share-btn hidden">
+                <span class="share-icon">📱</span> Desafiar no WhatsApp
+            </button>
+        </div>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+    </div>
+    <script type="module" src="game.js"></script>
+</body>
+
+</html>
