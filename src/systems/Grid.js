@@ -1,5 +1,6 @@
 import { Shape } from '../entities/Shape.js';
 import { BLOCK_SIZE } from '../constants.js';
+import { i18n } from '../i18n.js';
 
 export class Grid {
     constructor(game) {
@@ -128,12 +129,12 @@ export class Grid {
         if (this.isRectangle(shape)) {
             // Score and clear
             this.game.score += shape.rows * shape.cols * 100;
-            document.getElementById('score').innerText = `Score: ${this.game.score}`;
+            document.getElementById('score').innerText = `${i18n.t('score_prefix')}: ${this.game.score}`;
 
             // Emit particles from the center of the shape
             const centerX = (shape.x + shape.cols / 2) * BLOCK_SIZE;
             const centerY = shape.y + (shape.rows / 2) * BLOCK_SIZE;
-            this.game.particleSystem.emit(centerX, centerY, shape.color, 20);
+            //this.game.particleSystem.emit(centerX, centerY, shape.color, 20);
             this.game.soundManager.play('clear');
 
             // Start animation instead of removing immediately

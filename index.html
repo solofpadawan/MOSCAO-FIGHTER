@@ -13,37 +13,38 @@
     <div id="game-container">
         <div id="start-screen">
             <img src="assets/images/bio_ship.png" id="start-bg-ship" alt="">
+            <img src="" id="start-bg-blink" class="hidden" alt="">
             <h1 class="title">MOSCÃO FIGHTER</h1>
             <div class="high-scores">
-                <h2>TOP 10 PLAYERS</h2>
-                <div class="score-entry score-1"><span>AAA</span><span>50000</span></div>
-                <div class="score-entry score-2"><span>BBB</span><span>40000</span></div>
-                <div class="score-entry score-3"><span>CCC</span><span>30000</span></div>
-                <div class="score-entry score-4"><span>DDD</span><span>20000</span></div>
-                <div class="score-entry score-5"><span>EEE</span><span>10000</span></div>
-                <div class="score-entry score-6"><span>FFF</span><span>9000</span></div>
-                <div class="score-entry score-7"><span>GGG</span><span>8000</span></div>
-                <div class="score-entry score-8"><span>HHH</span><span>7000</span></div>
-                <div class="score-entry score-9"><span>III</span><span>6000</span></div>
-                <div class="score-entry score-10"><span>JJJ</span><span>5000</span></div>
+                <h2 data-i18n="top_players">TOP 10 PLAYERS</h2>
+                <div class="score-entry score-1"><span>01 AAA</span><span>50000</span></div>
+                <div class="score-entry score-2"><span>02 BBB</span><span>40000</span></div>
+                <div class="score-entry score-3"><span>03 CCC</span><span>30000</span></div>
+                <div class="score-entry score-4"><span>04 DDD</span><span>20000</span></div>
+                <div class="score-entry score-5"><span>05 EEE</span><span>10000</span></div>
+                <div class="score-entry score-6"><span>06 FFF</span><span>9000</span></div>
+                <div class="score-entry score-7"><span>07 GGG</span><span>8000</span></div>
+                <div class="score-entry score-8"><span>08 HHH</span><span>7000</span></div>
+                <div class="score-entry score-9"><span>09 III</span><span>6000</span></div>
+                <div class="score-entry score-10"><span>10 JJJ</span><span>5000</span></div>
             </div>
-            <p class="blink">Pressione algo para começar!</p>
+            <p class="blink" data-i18n="press_start">Pressione algo para começar!</p>
         </div>
         <div id="ui-layer" class="hidden">
             <div id="score">Score: 0</div>
             <div id="level">Level: 1</div>
         </div>
         <div id="game-over" class="hidden">
-            <h1>GAME OVER</h1>
+            <h1 data-i18n="game_over">GAME OVER</h1>
             <p id="final-score">Score: 0</p>
             <div id="name-entry">
-                <p>Digite seu nome:</p>
-                <input type="text" id="player-name" maxlength="6" placeholder="PLAYER" autocomplete="off">
-                <button id="submit-name-btn" class="submit-btn">[ ENTER ]</button>
+                <p data-i18n="enter_name">Digite seu nome:</p>
+                <input type="text" id="player-name" maxlength="6" data-i18n-placeholder="player_placeholder" placeholder="PLAYER" autocomplete="off">
+                <button id="submit-name-btn" class="submit-btn" data-i18n="enter_btn">[ ENTER ]</button>
             </div>
-            <p id="restart-msg" class="hidden">Pressione ESPAÇO ou Toque para Reiniciar</p>
+            <p id="restart-msg" class="hidden" data-i18n="restart_msg">Pressione ESPAÇO ou Toque para Reiniciar</p>
             <button id="share-btn" class="share-btn hidden">
-                <span class="share-icon">📱</span> Desafiar no WhatsApp
+                <span class="share-icon">📱</span> <span data-i18n="share_whatsapp">Desafiar no WhatsApp</span>
             </button>
         </div>
         <canvas id="gameCanvas" width="400" height="600"></canvas>

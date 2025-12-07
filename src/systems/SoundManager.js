@@ -1,6 +1,43 @@
 export class SoundManager {
     constructor() {
         this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Looping audio for brake
+        this.brakeAudio = new Audio('assets/sound/breaks.mp3');
+        this.brakeAudio.loop = true;
+        this.brakeAudio.volume = 0.5;
+
+        // Applause audio
+        this.applauseAudio = new Audio('assets/sound/applause.mp3');
+
+        // Looping audio for speed up
+        this.speedUpAudio = new Audio('assets/sound/speed-up.mp3');
+        this.speedUpAudio.loop = true;
+        this.speedUpAudio.volume = 0.5;
+    }
+
+    startBrake() {
+        if (this.brakeAudio.paused) {
+            this.brakeAudio.currentTime = 0;
+            this.brakeAudio.play().catch(e => { });
+        }
+    }
+
+    stopBrake() {
+        this.brakeAudio.pause();
+        this.brakeAudio.currentTime = 0;
+    }
+
+    startSpeedUp() {
+        if (this.speedUpAudio.paused) {
+            this.speedUpAudio.currentTime = 0;
+            this.speedUpAudio.play().catch(e => { });
+        }
+    }
+
+    stopSpeedUp() {
+        this.speedUpAudio.pause();
+        this.speedUpAudio.currentTime = 0;
     }
 
     play(type) {
@@ -10,6 +47,7 @@ export class SoundManager {
 
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
+        let lastOut = 0; // For noise generation
 
         osc.connect(gain);
         gain.connect(this.ctx.destination);
@@ -72,6 +110,11 @@ export class SoundManager {
 
                 osc.start(now);
                 osc.stop(now + 0.1);
+                break;
+
+            case 'applause':
+                this.applauseAudio.currentTime = 0;
+                this.applauseAudio.play().catch(e => { });
                 break;
         }
     }

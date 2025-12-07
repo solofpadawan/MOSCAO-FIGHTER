@@ -1,8 +1,10 @@
-import { ParticleSystem } from './systems/ParticleSystem.js';
+//import { ParticleSystem } from './systems/ParticleSystem.js';
 import { Starfield } from './systems/Starfield.js';
 import { SoundManager } from './systems/SoundManager.js';
 import { Grid } from './systems/Grid.js';
 import { Player } from './entities/Player.js';
+import { ConfettiSystem } from './systems/ConfettiSystem.js';
+import { i18n } from './i18n.js';
 
 export class Game {
     constructor() {
@@ -11,14 +13,19 @@ export class Game {
         this.width = this.canvas.width;
         this.height = this.canvas.height;
 
+        // Initialize i18n
+        i18n.init();
+
         this.lastTime = 0;
         this.score = 0;
+        this.scoreAccumulator = 0;
         this.level = 1;
         this.totalTime = 0;
         this.gameOver = false;
 
         this.bullets = [];
-        this.particleSystem = new ParticleSystem();
+        //this.particleSystem = new ParticleSystem();
+        this.confettiSystem = new ConfettiSystem();
         this.starfield = new Starfield(this.width, this.height);
         this.soundManager = new SoundManager();
         this.grid = new Grid(this);
@@ -52,10 +59,41 @@ export class Game {
         this.transitionTextY = -100;
         this.transitionPhase = 0; // 0: Waiting for clear, 1: Text dropping
 
+        this.celebrationTimer = 0;
+        this.celebrationDuration = 4000; // 4 seconds
+
+        // Blink Animation Properties
+        this.blinkImages = [];
+        this.blinkFrameCount = 13; // 13 frames
+        this.blinkStartFrame = 1;
+        this.blinkTimer = Math.random() * 3000 + 2000; // Random start between 2-5s
+        this.isBlinking = false;
+        this.currentBlinkFrame = 0;
+        this.blinkFrameDuration = 30; // ms per frame
+        this.blinkFrameTimer = 0;
+        this.blinkImageElement = document.getElementById('start-bg-blink');
+
+        this.preloadBlinkImages();
+
+        // Initialize blink image state
+        if (this.blinkImages.length > 0) {
+            this.blinkImageElement.src = this.blinkImages[0].src;
+            this.blinkImageElement.classList.remove('hidden');
+        }
+
         this.init();
         this.bindEvents();
         this.loadHighScores();
         this.loadMusicConfig();
+    }
+
+    preloadBlinkImages() {
+        for (let i = 0; i < this.blinkFrameCount; i++) {
+            const frameNum = (this.blinkStartFrame + i).toString().padStart(2, '0');
+            const img = new Image();
+            img.src = `assets/images/blink/${frameNum}.png`;
+            this.blinkImages.push(img);
+        }
     }
 
     getApiBaseUrl() {
@@ -148,6 +186,10 @@ export class Game {
         document.getElementById('start-screen').classList.add('hidden');
         document.getElementById('ui-layer').classList.remove('hidden');
 
+        // Initialize UI with translated text
+        document.getElementById('score').innerText = `${i18n.t('score_prefix')}: ${this.score}`;
+        document.getElementById('level').innerText = `${i18n.t('level_prefix')}: ${this.level}`;
+
         // Stop intro music
         this.introMusic.pause();
         this.introMusic.currentTime = 0;
@@ -230,9 +272,11 @@ export class Game {
                     break;
                 case 'ArrowUp':
                     this.speedMultiplier = 5.0; // Fast forward
+                    this.soundManager.startSpeedUp();
                     break;
                 case 'ArrowDown':
                     this.speedMultiplier = 0.5; // Slow motion
+                    this.soundManager.startBrake();
                     break;
                 case 'Space':
                     if (!this.gameOver) this.player.shoot();
@@ -249,8 +293,12 @@ export class Game {
                     this.player.movingRight = false;
                     break;
                 case 'ArrowUp':
+                    this.speedMultiplier = 1.0; // Reset speed
+                    this.soundManager.stopSpeedUp();
+                    break;
                 case 'ArrowDown':
                     this.speedMultiplier = 1.0; // Reset speed
+                    this.soundManager.stopBrake();
                     break;
             }
         });
@@ -347,7 +395,7 @@ export class Game {
         this.level = 1;
         this.totalTime = 0;
         this.bullets = [];
-        this.particleSystem = new ParticleSystem();
+        //this.particleSystem = new ParticleSystem();
         this.grid = new Grid(this);
         this.player.x = this.width / 2 - this.player.width / 2;
 
@@ -361,8 +409,8 @@ export class Game {
         document.getElementById('ui-layer').classList.add('hidden');
 
         // Reset UI
-        document.getElementById('score').innerText = 'Score: 0';
-        document.getElementById('level').innerText = 'Level: 1';
+        document.getElementById('score').innerText = `${i18n.t('score_prefix')}: 0`;
+        document.getElementById('level').innerText = `${i18n.t('level_prefix')}: 1`;
 
         // Pause music
         this.music.pause();
@@ -384,7 +432,7 @@ export class Game {
         this.music.pause();
 
         // Show final score
-        document.getElementById('final-score').innerText = `Score: ${this.score}`;
+        document.getElementById('final-score').innerText = `${i18n.t('score_prefix')}: ${this.score}`;
 
         // Show name entry, hide restart message and share button
         document.getElementById('name-entry').classList.remove('hidden');
@@ -403,16 +451,85 @@ export class Game {
     update(deltaTime) {
         if (this.gameState === 'START') {
             this.starfield.update(0.5); // Move stars slowly in background
+
+            // Update Blink Animation
+            if (!this.isBlinking) {
+                this.blinkTimer -= deltaTime;
+                if (this.blinkTimer <= 0) {
+                    this.isBlinking = true;
+                    this.currentBlinkFrame = 0;
+                    this.blinkFrameTimer = 0;
+                    this.blinkImageElement.classList.remove('hidden');
+                }
+            } else {
+                this.blinkFrameTimer += deltaTime;
+                if (this.blinkFrameTimer >= this.blinkFrameDuration) {
+                    this.blinkFrameTimer = 0;
+                    this.currentBlinkFrame++;
+
+                    if (this.currentBlinkFrame >= this.blinkFrameCount) {
+                        // Animation finished
+                        this.isBlinking = false;
+                        // Do NOT hide - hold the last frame
+                        // this.blinkImageElement.classList.add('hidden'); 
+                        this.blinkTimer = Math.random() * 3000 + 2000; // Reset timer
+                    } else {
+                        // Update frame
+                        this.blinkImageElement.src = this.blinkImages[this.currentBlinkFrame].src;
+                    }
+                }
+            }
+            return;
+        }
+
+        // Update confetti even if game over (for celebration)
+        this.confettiSystem.update(deltaTime);
+
+        if (this.gameState === 'CELEBRATION') {
+            this.starfield.update(0.5); // Keep stars moving
+            this.celebrationTimer -= deltaTime;
+            if (this.celebrationTimer <= 0) {
+                this.showRestartScreen();
+            }
             return;
         }
 
         if (this.gameOver || this.gameState === 'ENTER_NAME') return;
 
+        // Check for clearing shapes (explosions)
+        const isClearing = this.grid.shapes.some(s => s.clearing);
+
+        // Score Bonus/Penalty for Speed Control
+        // Enable if PLAYING or if in LEVEL_TRANSITION phase 0 (waiting for clear)
+        if (this.gameState === 'PLAYING' || (this.gameState === 'LEVEL_TRANSITION' && this.transitionPhase === 0)) {
+            if (this.speedMultiplier > 1.0 && !isClearing) {
+                // Bonus for speeding up: ~20 pts/sec at 5x speed
+                // Formula: (Multiplier - 1) * 5 * dt
+                this.scoreAccumulator += (this.speedMultiplier - 1) * 5 * (deltaTime / 1000);
+            } else if (this.speedMultiplier < 1.0) {
+                // Penalty for slowing down: ~20 pts/sec at 0.5x speed
+                // Formula: (1 - Multiplier) * 40 * dt
+                this.scoreAccumulator -= (1 - this.speedMultiplier) * 40 * (deltaTime / 1000);
+            }
+
+            // Apply accumulated score
+            if (Math.abs(this.scoreAccumulator) >= 1) {
+                const change = Math.trunc(this.scoreAccumulator);
+                this.score += change;
+                this.scoreAccumulator -= change;
+
+                // Prevent negative score
+                if (this.score < 0) this.score = 0;
+
+                // Update UI
+                document.getElementById('score').innerText = `${i18n.t('score_prefix')}: ${this.score}`;
+            }
+        }
+
         // Update total time only if playing (not in transition)
         if (this.gameState === 'PLAYING') {
             this.totalTime += deltaTime;
 
-            // Check for level progression
             if (this.totalTime > this.level * this.levelDuration) {
                 this.startLevelTransition();
             }
@@ -423,8 +540,19 @@ export class Game {
         this.player.update(deltaTime);
         this.starfield.update(this.speedMultiplier);
         this.updateBlackHole(deltaTime);
+
+
+
+        // Manage Speed-Up Sound
+        if (isClearing) {
+            this.soundManager.stopSpeedUp();
+        } else if (this.speedMultiplier === 5.0) {
+            // Only resume if we are supposed to be fast forwarding
+            this.soundManager.startSpeedUp();
+        }
+
         this.grid.update(deltaTime);
-        this.particleSystem.update();
+        //this.particleSystem.update();
 
         // Update bullets
         this.bullets.forEach(bullet => bullet.update(deltaTime));
@@ -454,7 +582,7 @@ export class Game {
             if (this.transitionTextY > this.height + 50) {
                 // Text finished dropping
                 this.level++;
-                document.getElementById('level').innerText = `Level: ${this.level}`;
+                document.getElementById('level').innerText = `${i18n.t('level_prefix')}: ${this.level}`;
                 this.gameState = 'PLAYING';
                 this.transitionTextY = -100;
 
@@ -558,8 +686,8 @@ export class Game {
         this.ctx.fillStyle = '#000';
         this.ctx.fillRect(0, 0, this.width, this.height);
 
-        // Draw black hole (behind everything)
-        if (this.blackHole && this.blackHoleImage.complete) {
+        // Draw black hole (behind everything) - but NOT during celebration
+        if (this.blackHole && this.blackHoleImage.complete && this.gameState !== 'CELEBRATION') {
             this.ctx.save();
             this.ctx.translate(this.blackHole.x, this.blackHole.y);
             this.ctx.rotate(this.blackHole.rotation);
@@ -572,8 +700,40 @@ export class Game {
 
         if (this.gameState === 'START') return;
 
+        if (this.gameState === 'CELEBRATION') {
+            // Draw celebration message
+            this.ctx.save();
+            this.ctx.font = '30px "Courier New", monospace';
+            this.ctx.fillStyle = '#ffff00';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.shadowColor = '#ff0000';
+            this.ctx.shadowBlur = 20;
+
+            const name = this.savedPlayerName || 'PLAYER';
+            this.ctx.fillText(`${i18n.t('celebration_prefix')}, ${name}!`, this.width / 2, this.height / 2 - 20);
+
+            // Subtitle
+            if (this.celebrationSubtitle) {
+                this.ctx.font = '20px "Courier New", monospace'; // Smaller font
+                this.ctx.fillStyle = '#ffffff'; // White text
+
+                if (Array.isArray(this.celebrationSubtitle)) {
+                    this.celebrationSubtitle.forEach((line, index) => {
+                        this.ctx.fillText(line, this.width / 2, this.height / 2 + 30 + (index * 25));
+                    });
+                } else {
+                    this.ctx.fillText(this.celebrationSubtitle, this.width / 2, this.height / 2 + 30);
+                }
+            }
+            this.ctx.restore();
+
+            this.confettiSystem.draw(this.ctx);
+            return;
+        }
+
         this.grid.draw(this.ctx);
-        this.particleSystem.draw(this.ctx);
+        //this.particleSystem.draw(this.ctx);
         this.player.draw(this.ctx);
         this.bullets.forEach(bullet => bullet.draw(this.ctx));
 
@@ -586,9 +746,11 @@ export class Game {
             this.ctx.textBaseline = 'middle';
             this.ctx.shadowColor = '#00ffff';
             this.ctx.shadowBlur = 20;
-            this.ctx.fillText(`LEVEL ${this.level + 1}`, this.width / 2, this.transitionTextY);
+            this.ctx.fillText(`${i18n.t('level_word')} ${this.level + 1}`, this.width / 2, this.transitionTextY);
             this.ctx.restore();
         }
+
+        this.confettiSystem.draw(this.ctx);
     }
 
     loop(timestamp) {
@@ -609,19 +771,21 @@ export class Game {
             const data = await response.json();
 
             if (data.success && data.scores) {
+                this.highScores = data.scores; // Store for logic use
                 const scoresContainer = document.querySelector('.high-scores');
                 const entries = scoresContainer.querySelectorAll('.score-entry');
 
                 // Update each entry
                 for (let i = 0; i < 10; i++) {
+                    const rank = (i + 1).toString().padStart(2, '0');
                     if (data.scores[i]) {
                         const spans = entries[i].querySelectorAll('span');
-                        spans[0].textContent = data.scores[i].name;
+                        spans[0].textContent = `${rank} ${data.scores[i].name}`;
                         spans[1].textContent = data.scores[i].score;
                     } else {
                         // Show default/empty entry
                         const spans = entries[i].querySelectorAll('span');
-                        spans[0].textContent = '---';
+                        spans[0].textContent = `${rank} ---`;
                         spans[1].textContent = '0';
                     }
                 }
@@ -632,9 +796,20 @@ export class Game {
     }
 
     async saveHighScore(name, score) {
+        this.savedPlayerName = name;
+        this.savedScore = score;
+
         try {
+            // Determine Old Rank (before saving)
+            let oldRankIndex = -1;
+            if (this.highScores) {
+                oldRankIndex = this.highScores.findIndex(entry => entry.name === name);
+            }
+
             const baseUrl = this.getApiBaseUrl();
             const url = baseUrl ? `${baseUrl}/scores.php?action=saveScore` : 'scores.php?action=saveScore';
+
+            // Now waiting for server response to confirm if it's a new record
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -646,27 +821,70 @@ export class Game {
             const data = await response.json();
 
             if (data.success) {
-                // Reload high scores
+                // Wait for the new list to load so we can find new rank
                 await this.loadHighScores();
 
-                // Switch to restart mode
-                this.gameState = 'GAMEOVER';
-                this.nameEntered = true;
-                this.savedPlayerName = name; // Save for share message
-                this.savedScore = score;
-                document.getElementById('name-entry').classList.add('hidden');
-                document.getElementById('restart-msg').classList.remove('hidden');
-                document.getElementById('share-btn').classList.remove('hidden');
+                // data.updated is true ONLY if we updated an existing record (beat personal best)
+                if (data.updated) {
+                    // Determine New Rank
+                    let newRankIndex = -1;
+                    if (this.highScores) {
+                        newRankIndex = this.highScores.findIndex(entry => entry.name === name);
+                    }
+
+                    // Check for Rank Climb
+                    if (newRankIndex !== -1 && (oldRankIndex === -1 || newRankIndex < oldRankIndex)) {
+                        this.celebrationSubtitle = [
+                            "Você subiu no ranking,",
+                            `está em ${newRankIndex + 1}º lugar!`
+                        ];
+                    } else {
+                        this.celebrationSubtitle = ["Você bateu seu próprio record!"];
+                    }
+
+                    this.triggerCelebration();
+                } else {
+                    this.showRestartScreen();
+                }
+            } else {
+                console.warn('Save score API returned success:false', data);
+                this.showRestartScreen();
             }
+
         } catch (error) {
-            console.error('Failed to save high score:', error);
-            // Still allow restart even if save failed
-            this.gameState = 'GAMEOVER';
-            this.nameEntered = true;
-            document.getElementById('name-entry').classList.add('hidden');
-            document.getElementById('restart-msg').classList.remove('hidden');
-            document.getElementById('share-btn').classList.remove('hidden');
+            console.error('Error in saveHighScore:', error);
+            this.showRestartScreen();
         }
+    }
+
+    triggerCelebration() {
+        // Trigger celebration!
+        this.gameState = 'CELEBRATION';
+        this.celebrationTimer = this.celebrationDuration;
+        this.confettiSystem.startCelebration();
+        this.soundManager.play('applause');
+
+        // Hide UI elements for clean look
+        document.getElementById('game-over').classList.add('hidden');
+        document.getElementById('ui-layer').classList.add('hidden');
+    }
+
+    showRestartScreen() {
+        // Switch to restart mode
+        this.gameState = 'GAMEOVER';
+        this.nameEntered = true;
+
+        // Ensure UI is correct for restart screen
+        document.getElementById('name-entry').classList.add('hidden');
+        document.getElementById('game-over').classList.remove('hidden');
+        document.getElementById('restart-msg').classList.remove('hidden');
+        document.getElementById('share-btn').classList.remove('hidden');
+
+        // Show final score again if it was hidden
+        document.getElementById('final-score').innerText = `Score: ${this.savedScore || this.score}`;
+
+        // Show UI layer again if it was hidden
+        document.getElementById('ui-layer').classList.remove('hidden');
     }
 
     shareScore() {

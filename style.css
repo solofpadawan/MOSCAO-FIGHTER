@@ -129,18 +129,6 @@ canvas {
     width: 70%;
 }
 
-@keyframes blink {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0;
-    }
-}
-
 #game-over {
     position: absolute;
     top: 1%;
@@ -296,6 +284,35 @@ canvas {
     }
 }
 
+#start-bg-blink {
+    position: absolute;
+    top: calc(50% - 75px);
+    /*top: 368px;*/
+    /* Vertical position */
+    left: 50%;
+    /*left: 294px;*/
+    /* Horizontal position */
+    transform: translate(-51%, -50%);
+    /* Centers the element */
+    width: 75px;
+    /* Width of the animation */
+    height: 90px;
+    /* Height of the animation */
+    z-index: -1;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
 #start-bg-ship {
     position: absolute;
     top: 50%;
@@ -303,8 +320,12 @@ canvas {
     transform: translate(-50%, -50%);
     width: 330px;
     height: 330px;
-    opacity: 0.4;
-    z-index: -1;
+    z-index: -2;
     pointer-events: none;
     image-rendering: pixelated;
+}
+
+#start-bg-ship,
+#start-bg-blink {
+    opacity: 1.0;
 }
