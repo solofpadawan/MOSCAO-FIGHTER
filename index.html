@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOSCÃO FIGHTER</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="game-container">
+        <div id="start-screen">
+            <img src="assets/images/bio_ship.png" id="start-bg-ship" alt="">
+            <img src="" id="start-bg-blink" class="hidden" alt="">
+            <h1 class="title">MOSCÃO FIGHTER</h1>
+            <div class="high-scores">
+                <h2 data-i18n="top_players">TOP 10 PLAYERS</h2>
+                <div class="score-entry score-1"><span>01 AAA</span><span>50000</span></div>
+                <div class="score-entry score-2"><span>02 BBB</span><span>40000</span></div>
+                <div class="score-entry score-3"><span>03 CCC</span><span>30000</span></div>
+                <div class="score-entry score-4"><span>04 DDD</span><span>20000</span></div>
+                <div class="score-entry score-5"><span>05 EEE</span><span>10000</span></div>
+                <div class="score-entry score-6"><span>06 FFF</span><span>9000</span></div>
+                <div class="score-entry score-7"><span>07 GGG</span><span>8000</span></div>
+                <div class="score-entry score-8"><span>08 HHH</span><span>7000</span></div>
+                <div class="score-entry score-9"><span>09 III</span><span>6000</span></div>
+                <div class="score-entry score-10"><span>10 JJJ</span><span>5000</span></div>
+            </div>
+            <p class="blink" data-i18n="press_start">Pressione algo para começar!</p>
+            <p id="instructions-trigger" class="instructions-prompt" data-i18n="instructions_prompt">Clique aqui ou tecle [ i ] Para instruções</p>
+        </div>
+        <div id="instructions-screen" class="hidden">
+            <h1 class="instructions-title" data-i18n="instructions_title">INSTRUÇÕES</h1>
+            <div class="instructions-content">
+                <img id="instructions-img" src="" alt="Instructions">
+            </div>
+            <p class="instructions-footer" data-i18n="instructions_footer">Tecle ou toque na tela para voltar ao início!</p>
+        </div>
+        <div id="ui-layer" class="hidden">
+            <div id="score">Score: 0</div>
+            <div id="level">Level: 1</div>
+        </div>
+        <div id="game-over" class="hidden">
+            <h1 data-i18n="game_over">GAME OVER</h1>
+            <p id="final-score">Score: 0</p>
+            <div id="name-entry">
+                <p data-i18n="enter_name">Digite seu nome:</p>
+                <input type="text" id="player-name" maxlength="6" autocomplete="off">
+                <button id="submit-name-btn" class="submit-btn" data-i18n="enter_btn">[ ENTER ]</button>
+            </div>
+            <p id="restart-msg" class="hidden" data-i18n="restart_msg">Pressione ESPAÇO ou Toque para Reiniciar</p>
+            <button id="share-btn" class="share-btn hidden">
+                <span class="share-icon">📱</span> <span data-i18n="share_whatsapp">Desafiar no WhatsApp</span>
+            </button>
+        </div>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+    </div>
+    <script type="module" src="game.js"></script>
+</body>
+
+</html>
